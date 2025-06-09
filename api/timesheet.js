@@ -13,7 +13,9 @@ async function getUser(request) {
 // create a new week timesheet (if not exists)
 export async function startWeek(request, env, ctx) {
   const user = await getUser(request);
-  const { weekStart } = ctx.params; // ISO yyyy-mm-dd
+  // router defines the parameter as ":week" so pull that value
+  const { week } = ctx.params;
+  const weekStart = week; // ISO yyyy-mm-dd
   // insert if not exists
   await env.TIMESHEET_DB
     .prepare(`
@@ -29,7 +31,9 @@ export async function startWeek(request, env, ctx) {
 // add one time entry
 export async function addEntry(request, env, ctx) {
   const user = await getUser(request);
-  const { weekStart } = ctx.params;
+  // parameter comes in as "week" from the router
+  const { week } = ctx.params;
+  const weekStart = week;
   const { date, hours, type, description } = await request.json();
   const res = await env.TIMESHEET_DB
     .prepare(`
@@ -47,7 +51,8 @@ export async function addEntry(request, env, ctx) {
 // retrieve all entries & totals
 export async function getWeek(request, env, ctx) {
   const user = await getUser(request);
-  const { weekStart } = ctx.params;
+  const { week } = ctx.params; // param name from router
+  const weekStart = week;
   const entries = await env.TIMESHEET_DB
     .prepare(`
       SELECT entry_date, hours, type, description 
@@ -76,7 +81,8 @@ export async function getWeek(request, env, ctx) {
 // submit (close) the week
 export async function submitWeek(request, env, ctx) {
   const user = await getUser(request);
-  const { weekStart } = ctx.params;
+  const { week } = ctx.params;
+  const weekStart = week;
   await env.TIMESHEET_DB
     .prepare(`
       UPDATE timesheets SET status = 'submitted'
