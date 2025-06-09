@@ -26,6 +26,9 @@ async function fetchAPI(url, options = {}) {
   options.headers = options.headers || {};
   const token = getAuth();
   if (token) options.headers['Authorization'] = `Bearer ${token}`;
+  if (options.body && !options.headers['Content-Type']) {
+    options.headers['Content-Type'] = 'application/json';
+  }
   const res = await fetch(url, options);
   const contentType = res.headers.get('Content-Type') || '';
   if (contentType.includes('application/json')) {

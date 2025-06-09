@@ -11,6 +11,9 @@ const router = new Router();
 router.post('/api/auth/register', register);
 router.post('/api/auth/login',    login);
 router.get( '/api/auth/me',       me);
+// backward compatibility with old endpoints
+router.post('/api/register', register);
+router.post('/api/login',    login);
 
 // Timesheet
 router.post('/api/timesheet/:week/start',   startWeek);
