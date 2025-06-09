@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timesheet App</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div id="app">
+    <div id="login-view">
+      <h2>Login</h2>
+      <input id="email" type="email" placeholder="Email" />
+      <input id="password" type="password" placeholder="Password" />
+      <button id="login-btn">Login</button>
+    </div>
+    <div id="timesheet-view" hidden>
+      <h2>Your Timesheet</h2>
+      <div id="entry-form">
+        <input type="date" id="entry-date" />
+        <input type="number" id="entry-hours" placeholder="Hours" min="0" step="0.25" />
+        <select id="entry-type">
+          <option value="meeting">Meeting</option>
+          <option value="project">Project</option>
+          <option value="other">Other</option>
+        </select>
+        <button id="add-entry-btn">Add Entry</button>
+      </div>
+      <div id="entries"></div>
+      <div id="summary"></div>
+      <button id="submit-timesheet-btn">Submit Timesheet</button>
+      <h3>Previous Weeks</h3>
+      <div id="history"></div>
+    </div>
+    <div id="admin-view" hidden>
+      <h2>Admin Dashboard</h2>
+      <div id="all-timesheets"></div>
+    </div>
+  </div>
+  <script src="/script.js"></script>
+</body>
+</html>
