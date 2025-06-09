@@ -1,9 +1,9 @@
 // api/admin.js
 import { verify } from '../utils/jwt.js';
 
-async function requireAdmin(request) {
+async function requireAdmin(request, env) {
   const token = request.headers.get('Authorization')?.split(' ')[1];
-  const payload = verify(token);
+  const payload = verify(token, env.JWT_SECRET);
   if (!payload || payload.role !== 'admin') throw new Error('Forbidden');
   return payload;
 }
@@ -11,7 +11,7 @@ async function requireAdmin(request) {
 // GET /api/admin/timesheets
 // list all users’ timesheets
 export async function listAll(request, env) {
-  await requireAdmin(request);
+  await requireAdmin(request, env);
   const { results } = await env.TIMESHEET_DB
     .prepare(`
       SELECT t.id, u.email, t.week_start, t.status
@@ -26,7 +26,7 @@ export async function listAll(request, env) {
 // POST /api/admin/timesheet/:id/reopen
 // reopen a submitted timesheet
 export async function reopen(request, env, ctx) {
-  await requireAdmin(request);
+  await requireAdmin(request, env);
   const { id } = ctx.params;
   await env.TIMESHEET_DB
     .prepare(`UPDATE timesheets SET status = 'open' WHERE id = ?`)

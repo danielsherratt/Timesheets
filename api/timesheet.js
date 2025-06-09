@@ -2,9 +2,9 @@
 import { verify } from '../utils/jwt.js';
 
 // helper to load user from JWT
-async function getUser(request) {
+async function getUser(request, env) {
   const token = request.headers.get('Authorization')?.split(' ')[1];
-  const payload = verify(token);
+  const payload = verify(token, env.JWT_SECRET);
   if (!payload) throw new Error('Unauthorized');
   return payload;
 }
@@ -12,8 +12,10 @@ async function getUser(request) {
 // POST /api/timesheet/:week/start
 // create a new week timesheet (if not exists)
 export async function startWeek(request, env, ctx) {
-  const user = await getUser(request);
-  const { weekStart } = ctx.params; // ISO yyyy-mm-dd
+  const user = await getUser(request, env);
+  // router defines the parameter as ":week" so pull that value
+  const { week } = ctx.params;
+  const weekStart = week; // ISO yyyy-mm-dd
   // insert if not exists
   await env.TIMESHEET_DB
     .prepare(`
@@ -28,8 +30,10 @@ export async function startWeek(request, env, ctx) {
 // POST /api/timesheet/:week/entries
 // add one time entry
 export async function addEntry(request, env, ctx) {
-  const user = await getUser(request);
-  const { weekStart } = ctx.params;
+  const user = await getUser(request, env);
+  // parameter comes in as "week" from the router
+  const { week } = ctx.params;
+  const weekStart = week;
   const { date, hours, type, description } = await request.json();
   const res = await env.TIMESHEET_DB
     .prepare(`
@@ -46,8 +50,9 @@ export async function addEntry(request, env, ctx) {
 // GET /api/timesheet/:week
 // retrieve all entries & totals
 export async function getWeek(request, env, ctx) {
-  const user = await getUser(request);
-  const { weekStart } = ctx.params;
+  const user = await getUser(request, env);
+  const { week } = ctx.params; // param name from router
+  const weekStart = week;
   const entries = await env.TIMESHEET_DB
     .prepare(`
       SELECT entry_date, hours, type, description 
@@ -75,8 +80,9 @@ export async function getWeek(request, env, ctx) {
 // POST /api/timesheet/:week/submit
 // submit (close) the week
 export async function submitWeek(request, env, ctx) {
-  const user = await getUser(request);
-  const { weekStart } = ctx.params;
+  const user = await getUser(request, env);
+  const { week } = ctx.params;
+  const weekStart = week;
   await env.TIMESHEET_DB
     .prepare(`
       UPDATE timesheets SET status = 'submitted'
@@ -90,7 +96,7 @@ export async function submitWeek(request, env, ctx) {
 // GET /api/timesheets
 // list all open/closed weeks for the user
 export async function listWeeks(request, env) {
-  const user = await getUser(request);
+  const user = await getUser(request, env);
   const { results } = await env.TIMESHEET_DB
     .prepare(`
       SELECT week_start, status 
