@@ -1,6 +1,6 @@
 const api = {
-  register: '/api/register',
-  login: '/api/login',
+  register: '/api/auth/register',
+  login: '/api/auth/login',
   entries: '/api/entries',
   summary: '/api/summary',
   submit: '/api/submit',
@@ -16,12 +16,16 @@ function getAuth() {
   return document.cookie.split('; ').find(r=>r.startsWith('auth='))?.split('=')[1];
 }
 
-async function fetchAPI(url, options={}) {
+async function fetchAPI(url, options = {}) {
   options.headers = options.headers || {};
   const token = getAuth();
   if (token) options.headers['Authorization'] = `Bearer ${token}`;
   const res = await fetch(url, options);
-  return res.json();
+  const contentType = res.headers.get('Content-Type') || '';
+  if (contentType.includes('application/json')) {
+    return res.json();
+  }
+  return { status: res.status };
 }
 
 // DOM refs
