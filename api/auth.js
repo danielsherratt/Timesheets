@@ -13,7 +13,7 @@ export async function register(request, env) {
   const { results } = await stmt.bind(email, password).all();
   const user = results[0];
   return new Response(
-    JSON.stringify({ token: sign(user), user }),
+    JSON.stringify({ token: sign(user, env.JWT_SECRET), user }),
     { headers: { 'Content-Type': 'application/json' } }
   );
 }
@@ -30,15 +30,15 @@ export async function login(request, env) {
     return new Response('Invalid credentials', { status: 401 });
   }
   return new Response(
-    JSON.stringify({ token: sign(user), user: { id: user.id, email: user.email, role: user.role } }),
+    JSON.stringify({ token: sign(user, env.JWT_SECRET), user: { id: user.id, email: user.email, role: user.role } }),
     { headers: { 'Content-Type': 'application/json' } }
   );
 }
 
 // GET /api/auth/me
-export async function me(request) {
+export async function me(request, env) {
   const auth = request.headers.get('Authorization')?.split(' ')[1];
-  const payload = verify(auth);
+  const payload = verify(auth, env.JWT_SECRET);
   if (!payload) return new Response('Unauthorized', { status: 401 });
   return new Response(JSON.stringify(payload), { headers: { 'Content-Type': 'application/json' } });
 }
