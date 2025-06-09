@@ -1,6 +1,6 @@
 // utils/jwt.js
 import jwt from 'jsonwebtoken';
-const SECRET = YOUR_JWT_SECRET;
+const SECRET = "mwRNPH7dLqxYR3CY43XXqAlr3fQqLoqr";
 
 export function sign(user) {
   return jwt.sign({ sub: user.id, email: user.email, role: user.role }, SECRET, {
