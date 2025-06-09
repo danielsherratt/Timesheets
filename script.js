@@ -1,10 +1,8 @@
 const api = {
   register: '/api/auth/register',
   login: '/api/auth/login',
-  entries: '/api/entries',
-  summary: '/api/summary',
-  submit: '/api/submit',
-  history: '/api/history',
+  timesheet: '/api/timesheet',
+  timesheets: '/api/timesheets',
   admin: '/api/admin/timesheets',
 };
 
@@ -14,6 +12,14 @@ function setAuth(token) {
 }
 function getAuth() {
   return document.cookie.split('; ').find(r=>r.startsWith('auth='))?.split('=')[1];
+}
+
+function getWeekStart(date = new Date()) {
+  const d = new Date(date);
+  const day = d.getUTCDay();
+  const diff = d.getUTCDate() - day + (day === 0 ? -6 : 1); // Monday as start
+  d.setUTCDate(diff);
+  return d.toISOString().slice(0, 10);
 }
 
 async function fetchAPI(url, options = {}) {
@@ -51,7 +57,13 @@ document.getElementById('login-btn').onclick = async () => {
 };
 
 async function loadTimesheet() {
-  const data = await fetchAPI(timesheetView.hidden ? api.admin : api.entries);
+  if (timesheetView.hidden) {
+    await fetchAPI(api.admin);
+    return; // admin view rendering omitted
+  }
+  const week = getWeekStart();
+  await fetchAPI(`${api.timesheet}/${week}/start`, { method: 'POST' });
+  const data = await fetchAPI(`${api.timesheet}/${week}`);
   // render entries, summary, history or admin list
   // for brevity, implement rendering similarly to entry creation
 }
@@ -60,7 +72,8 @@ document.getElementById('add-entry-btn').onclick = async () => {
   const date = document.getElementById('entry-date').value;
   const hours = parseFloat(document.getElementById('entry-hours').value);
   const type = document.getElementById('entry-type').value;
-  await fetchAPI(api.entries, {
+  const week = getWeekStart(date);
+  await fetchAPI(`${api.timesheet}/${week}/entries`, {
     method: 'POST',
     body: JSON.stringify({ date, hours, type })
   });
@@ -68,7 +81,8 @@ document.getElementById('add-entry-btn').onclick = async () => {
 };
 
 document.getElementById('submit-timesheet-btn').onclick = async () => {
-  await fetchAPI(api.submit, { method: 'POST' });
+  const week = getWeekStart();
+  await fetchAPI(`${api.timesheet}/${week}/submit`, { method: 'POST' });
   alert('Submitted!');
   loadTimesheet();
 };
